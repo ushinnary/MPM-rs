@@ -34,6 +34,15 @@ impl Distribution {
     //     }
     // }
 
+    pub fn should_run_as_sudo(&self) -> bool {
+        match self {
+            Distribution::FedoraAtomic => false,
+            Distribution::Debian => true,
+            Distribution::Fedora => true,
+            Distribution::Arch => true,
+        }
+    }
+
     pub fn package_upgrade_commands(&self) -> &str {
         match self {
             Distribution::Debian => "upgrade",

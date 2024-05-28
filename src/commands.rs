@@ -26,13 +26,22 @@ impl PackageManager {
         args: Option<Vec<String>>,
     ) {
         self.available_managers.iter().for_each(|manager| {
-            let mut child = Command::new("sudo")
-                .arg(manager.get_package_name())
-                .arg(command.get_str(manager))
-                .args(args.as_ref().unwrap_or(&Vec::new()))
-                .stdin(Stdio::inherit())
-                .spawn()
-                .expect("Well, it didn't work...");
+            let mut child = if manager.should_run_as_sudo() {
+                Command::new("sudo")
+                    .arg(manager.get_package_name())
+                    .arg(command.get_str(manager))
+                    .args(args.as_ref().unwrap_or(&Vec::new()))
+                    .stdin(Stdio::inherit())
+                    .spawn()
+                    .expect("Well, it didn't work...")
+            } else {
+                Command::new(manager.get_package_name())
+                    .arg(command.get_str(manager))
+                    .args(args.as_ref().unwrap_or(&Vec::new()))
+                    .stdin(Stdio::inherit())
+                    .spawn()
+                    .expect("Well, it didn't work...")
+            };
 
             child.wait().expect("Failed to wait for process");
         });
