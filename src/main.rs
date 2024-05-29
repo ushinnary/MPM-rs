@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 use commands::PackageManager;
 
@@ -13,6 +13,15 @@ struct Args {
     /// Main commands
     #[clap(flatten)]
     main_command: MainCommands,
+
+    #[command(subcommand)]
+    extra_commands: Option<Subcommands>,
+}
+
+#[derive(Debug, PartialEq, Eq, Subcommand)]
+enum Subcommands {
+    #[command(external_subcommand)]
+    All(Vec<String>),
 }
 
 #[derive(Parser, Debug)]
@@ -40,13 +49,14 @@ fn main() {
 
     let package_managers = PackageManager::new();
 
+    let other_args: Option<Vec<String>> =
+        args.extra_commands.map(|Subcommands::All(options)| options);
+
     if args.main_command.install {
-        // TODO: implement package to install with other additional arguments
-        package_managers.run_command(AvailableCommands::Install, None);
+        package_managers.run_command(AvailableCommands::Install, other_args);
     } else if args.main_command.update || args.main_command.upgrade {
         package_managers.run_command(AvailableCommands::Update, None);
     } else if args.main_command.remove {
-        // TODO: implement package to remove
-        package_managers.run_command(AvailableCommands::Remove, None);
+        package_managers.run_command(AvailableCommands::Remove, other_args);
     }
 }

@@ -33,15 +33,14 @@ impl PackageManager {
                     .args(args.as_ref().unwrap_or(&Vec::new()))
                     .stdin(Stdio::inherit())
                     .spawn()
-                    .expect("Well, it didn't work...")
             } else {
                 Command::new(manager.get_package_name())
                     .arg(command.get_str(manager))
                     .args(args.as_ref().unwrap_or(&Vec::new()))
                     .stdin(Stdio::inherit())
                     .spawn()
-                    .expect("Well, it didn't work...")
-            };
+            }
+            .expect("Well, it didn't work...");
 
             child.wait().expect("Failed to wait for process");
         });
