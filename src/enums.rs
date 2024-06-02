@@ -1,26 +1,28 @@
 #[derive(PartialEq, Debug)]
 pub enum Distribution {
-    Debian,
+    /// https://doc.ubuntu-fr.org/apt-cli
+    DebianLike,
     Fedora,
-    FedoraAtomic,
+    AtomicRpmOstree,
+    /// https://wiki.archlinux.org/title/Pacman
     Arch,
 }
 
 impl Distribution {
     pub fn get_package_name(&self) -> &str {
         match self {
-            Distribution::Debian => "apt",
+            Distribution::DebianLike => "apt",
             Distribution::Fedora => "dnf",
-            Distribution::FedoraAtomic => "rpm-ostree",
+            Distribution::AtomicRpmOstree => "rpm-ostree",
             Distribution::Arch => "pacman",
         }
     }
 
     pub fn get_package_install_command(&self) -> &str {
         match self {
-            Distribution::Debian => "install",
+            Distribution::DebianLike => "install",
             Distribution::Fedora => "install",
-            Distribution::FedoraAtomic => "install",
+            Distribution::AtomicRpmOstree => "install",
             Distribution::Arch => "-S",
         }
     }
@@ -36,8 +38,8 @@ impl Distribution {
 
     pub fn should_run_as_sudo(&self) -> bool {
         match self {
-            Distribution::FedoraAtomic => false,
-            Distribution::Debian => true,
+            Distribution::AtomicRpmOstree => false,
+            Distribution::DebianLike => true,
             Distribution::Fedora => true,
             Distribution::Arch => true,
         }
@@ -45,19 +47,19 @@ impl Distribution {
 
     pub fn get_package_upgrade_commands(&self) -> &str {
         match self {
-            Distribution::Debian => "upgrade",
+            Distribution::DebianLike => "upgrade",
             Distribution::Fedora => "upgrade",
-            Distribution::FedoraAtomic => "upgrade",
-            Distribution::Arch => "-Sy",
+            Distribution::AtomicRpmOstree => "upgrade",
+            Distribution::Arch => "-Syu",
         }
     }
 
     pub fn get_package_remove_command(&self) -> &str {
         match self {
-            Distribution::Debian => "",
-            Distribution::Fedora => "",
-            Distribution::FedoraAtomic => "uninstall",
-            Distribution::Arch => "",
+            Distribution::DebianLike => "remove",
+            Distribution::Fedora => "remove",
+            Distribution::AtomicRpmOstree => "uninstall",
+            Distribution::Arch => "-R", // -Rs for remove with deps
         }
     }
 
@@ -65,9 +67,9 @@ impl Distribution {
         use std::path::Path;
 
         match self {
-            Distribution::Debian => Path::new("/bin/apt"),
+            Distribution::DebianLike => Path::new("/bin/apt"),
             Distribution::Fedora => Path::new("/bin/dnf"),
-            Distribution::FedoraAtomic => Path::new("/bin/rpm-ostree"),
+            Distribution::AtomicRpmOstree => Path::new("/bin/rpm-ostree"),
             Distribution::Arch => Path::new("/bin/pacman"),
         }
         .exists()
@@ -75,9 +77,9 @@ impl Distribution {
 
     pub fn get_all_possible_options() -> Vec<Self> {
         vec![
-            Distribution::Debian,
+            Distribution::DebianLike,
             Distribution::Fedora,
-            Distribution::FedoraAtomic,
+            Distribution::AtomicRpmOstree,
             Distribution::Arch,
         ]
     }
