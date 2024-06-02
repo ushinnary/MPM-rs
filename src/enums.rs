@@ -16,7 +16,7 @@ impl Distribution {
         }
     }
 
-    pub fn package_install_command(&self) -> &str {
+    pub fn get_package_install_command(&self) -> &str {
         match self {
             Distribution::Debian => "install",
             Distribution::Fedora => "install",
@@ -43,7 +43,7 @@ impl Distribution {
         }
     }
 
-    pub fn package_upgrade_commands(&self) -> &str {
+    pub fn get_package_upgrade_commands(&self) -> &str {
         match self {
             Distribution::Debian => "upgrade",
             Distribution::Fedora => "upgrade",
@@ -52,15 +52,25 @@ impl Distribution {
         }
     }
 
+    pub fn get_package_remove_command(&self) -> &str {
+        match self {
+            Distribution::Debian => "",
+            Distribution::Fedora => "",
+            Distribution::FedoraAtomic => "uninstall",
+            Distribution::Arch => "",
+        }
+    }
+
     pub fn is_available(&self) -> bool {
         use std::path::Path;
 
         match self {
-            Distribution::Debian => Path::new("/bin/apt").exists(),
-            Distribution::Fedora => Path::new("/bin/dnf").exists(),
-            Distribution::FedoraAtomic => Path::new("/bin/rpm-ostree").exists(),
-            Distribution::Arch => false,
+            Distribution::Debian => Path::new("/bin/apt"),
+            Distribution::Fedora => Path::new("/bin/dnf"),
+            Distribution::FedoraAtomic => Path::new("/bin/rpm-ostree"),
+            Distribution::Arch => Path::new("/bin/pacman"),
         }
+        .exists()
     }
 
     pub fn get_all_possible_options() -> Vec<Self> {
@@ -84,12 +94,15 @@ impl AvailableCommands {
     pub fn get_str(&self, distribution: &Distribution) -> String {
         match self {
             AvailableCommands::Install => {
-                distribution.package_install_command().to_string()
+                distribution.get_package_install_command()
             }
             AvailableCommands::Update => {
-                distribution.package_upgrade_commands().to_string()
+                distribution.get_package_upgrade_commands()
             }
-            AvailableCommands::Remove => "remove".to_string(),
+            AvailableCommands::Remove => {
+                distribution.get_package_remove_command()
+            }
         }
+        .to_string()
     }
 }
