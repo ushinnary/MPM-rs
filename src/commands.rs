@@ -1,6 +1,9 @@
 use std::process::{Command, Stdio};
 
-use crate::enums::{AvailableCommands, Distribution};
+use crate::{
+    enums::{AvailableCommands, Distribution},
+    MainCommands,
+};
 
 #[derive(Debug)]
 pub struct PackageManager {
@@ -12,6 +15,7 @@ impl PackageManager {
         Self { available_managers: Self::get_available_managers() }
     }
 
+    /// List every usable package manager to be used
     fn get_available_managers() -> Vec<Distribution> {
         Distribution::get_all_possible_options()
             .into_iter()
@@ -19,12 +23,21 @@ impl PackageManager {
             .collect::<Vec<Distribution>>()
     }
 
+    /// Determine command to run from args
+    fn get_package_command(&self, cmd: &MainCommands) -> AvailableCommands {
+        if cmd.update || cmd.upgrade {
+            AvailableCommands::Update
+        } else if cmd.remove {
+            AvailableCommands::Remove
+        } else {
+            AvailableCommands::Install
+        }
+    }
+
     /// Running the command
-    pub fn run_command(
-        &self,
-        command: AvailableCommands,
-        args: Option<Vec<String>>,
-    ) {
+    pub fn run_command(&self, cmd: &MainCommands, args: Option<Vec<String>>) {
+        let command = self.get_package_command(cmd);
+
         self.available_managers.iter().for_each(|manager| {
             let mut child = if manager.should_run_as_sudo() {
                 Command::new("sudo")
@@ -40,7 +53,7 @@ impl PackageManager {
                     .stdin(Stdio::inherit())
                     .spawn()
             }
-            .expect("Well, it didn't work...");
+            .expect("Failed to run command");
 
             child.wait().expect("Failed to wait for process");
         });

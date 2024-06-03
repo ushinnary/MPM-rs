@@ -2,8 +2,6 @@ use clap::{Parser, Subcommand};
 
 use commands::PackageManager;
 
-use crate::enums::AvailableCommands;
-
 mod commands;
 mod enums;
 
@@ -26,7 +24,7 @@ enum Subcommands {
 
 #[derive(Parser, Debug)]
 #[group(required = true, multiple = false)]
-struct MainCommands {
+pub struct MainCommands {
     /// Run install command
     #[arg(short, long)]
     install: bool,
@@ -47,16 +45,8 @@ struct MainCommands {
 fn main() {
     let args = Args::parse();
 
-    let package_managers = PackageManager::new();
-
-    let other_args: Option<Vec<String>> =
+    let additional_args =
         args.extra_commands.map(|Subcommands::All(options)| options);
 
-    if args.main_command.install {
-        package_managers.run_command(AvailableCommands::Install, other_args);
-    } else if args.main_command.update || args.main_command.upgrade {
-        package_managers.run_command(AvailableCommands::Update, None);
-    } else if args.main_command.remove {
-        package_managers.run_command(AvailableCommands::Remove, other_args);
-    }
+    PackageManager::new().run_command(&args.main_command, additional_args);
 }
