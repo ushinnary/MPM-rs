@@ -39,23 +39,58 @@ impl PackageManager {
         let command = self.get_package_command(cmd);
 
         self.available_managers.iter().for_each(|manager| {
-            let mut child = if manager.should_run_as_sudo() {
-                Command::new("sudo")
-                    .arg(manager.get_package_name())
-                    .arg(command.get_str(manager))
-                    .args(args.as_ref().unwrap_or(&Vec::new()))
-                    .stdin(Stdio::inherit())
-                    .spawn()
-            } else {
-                Command::new(manager.get_package_name())
-                    .arg(command.get_str(manager))
-                    .args(args.as_ref().unwrap_or(&Vec::new()))
-                    .stdin(Stdio::inherit())
-                    .spawn()
-            }
-            .expect("Failed to run command");
+            let args_copy = args.clone();
+            let (main_command, all_other_commands) =
+                get_main_and_additional_commands(
+                    manager,
+                    args_copy,
+                    command.clone(),
+                );
+
+            let mut child = Command::new(main_command)
+                .args(all_other_commands)
+                .stdin(Stdio::inherit())
+                .spawn()
+                .expect("Failed to run command");
 
             child.wait().expect("Failed to wait for process");
         });
     }
+}
+
+/// Construction of all possible args for command construction
+fn get_main_and_additional_commands(
+    manager: &Distribution,
+    args: Option<Vec<String>>,
+    command: AvailableCommands,
+) -> (&str, Vec<String>) {
+    let mut all_other_commands: Vec<String> = Vec::new();
+    let package_name = manager.get_package_name();
+
+    let main_command = if manager.should_run_as_sudo() {
+        all_other_commands.push(package_name.to_string());
+        "sudo"
+    } else {
+        package_name
+    };
+
+    if command.is_update() && manager.should_update_before_upgrade() {
+        all_other_commands
+            .push(manager.get_package_update_command().to_string());
+        all_other_commands.push("&&".to_string());
+
+        if manager.should_run_as_sudo() {
+            all_other_commands.push("sudo".to_string());
+        }
+
+        all_other_commands.push(package_name.to_string());
+    }
+
+    all_other_commands.push(command.get_str(manager));
+
+    if let Some(args) = args.as_ref() {
+        args.iter().for_each(|arg| all_other_commands.push(arg.clone()));
+    }
+
+    (main_command, all_other_commands)
 }

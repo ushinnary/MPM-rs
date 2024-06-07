@@ -27,14 +27,14 @@ impl Distribution {
         }
     }
 
-    // pub fn should_update_before_upgrade(&self) -> bool {
-    //     match self {
-    //         Distribution::Debian => true,
-    //         Distribution::Fedora => false,
-    //         Distribution::FedoraAtomic => false,
-    //         Distribution::Arch => false,
-    //     }
-    // }
+    pub fn should_update_before_upgrade(&self) -> bool {
+        match self {
+            Distribution::DebianLike => true,
+            Distribution::Fedora => false,
+            Distribution::AtomicRpmOstree => false,
+            Distribution::Arch => false,
+        }
+    }
 
     pub fn should_run_as_sudo(&self) -> bool {
         match self {
@@ -42,6 +42,13 @@ impl Distribution {
             Distribution::DebianLike => true,
             Distribution::Fedora => true,
             Distribution::Arch => true,
+        }
+    }
+
+    pub fn get_package_update_command(&self) -> &str {
+        match self {
+            Distribution::DebianLike => "update",
+            _ => self.get_package_upgrade_commands(),
         }
     }
 
@@ -85,7 +92,7 @@ impl Distribution {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AvailableCommands {
     Install,
     Update,
@@ -106,5 +113,9 @@ impl AvailableCommands {
             }
         }
         .to_string()
+    }
+
+    pub fn is_update(&self) -> bool {
+        self == &AvailableCommands::Update
     }
 }
