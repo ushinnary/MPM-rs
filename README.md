@@ -25,7 +25,9 @@ To install a package or some of them :
 `mpm -i package_name other_package`
 
 List of currently available parameters :
-Long | Short | Description
-`--install package_name` | `-i package_name` | Install a package
-`--update` or `--upgrade` | `-u` | Updates your system
-`--remove package_name` | `-r package_name` | Uninstall package
+
+| Long                      | Short             | Description         |
+| ------------------------- | ----------------- | ------------------- |
+| `--install package_name`  | `-i package_name` | Install a package   |
+| `--update` or `--upgrade` | `-u`              | Updates your system |
+| `--remove package_name`   | `-r package_name` | Uninstall package   |
