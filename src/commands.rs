@@ -74,18 +74,6 @@ fn get_main_and_additional_commands(
         package_name
     };
 
-    if command.is_update() && manager.should_update_before_upgrade() {
-        all_other_commands
-            .push(manager.get_package_update_command().to_string());
-        all_other_commands.push("&&".to_string());
-
-        if manager.should_run_as_sudo() {
-            all_other_commands.push("sudo".to_string());
-        }
-
-        all_other_commands.push(package_name.to_string());
-    }
-
     all_other_commands.push(command.get_str(manager));
 
     if let Some(args) = args.as_ref() {

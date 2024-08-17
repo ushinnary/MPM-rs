@@ -1,9 +1,8 @@
 [package]
 name = "mpm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
-license-file = "LICENSE"
 description = "Package manager for users who have many linux distributions running on a system"
 repository = "https://github.com/ushinnary/MPM-rs"
 readme = "README.md"
